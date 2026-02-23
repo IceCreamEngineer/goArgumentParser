@@ -11,3 +11,11 @@ func TestNoSchemaOrArguments(t *testing.T) {
 		t.Error("Should return 0")
 	}
 }
+
+func TestNoSchemaButOneArgument(t *testing.T) {
+	argumentParser := useCases.ArgumentParser{Arguments: "-x"}
+	err := argumentParser.Parse()
+	if err == nil {
+		t.Error("Should return err")
+	}
+}

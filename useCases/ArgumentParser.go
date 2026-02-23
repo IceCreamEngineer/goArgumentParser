@@ -1,7 +1,13 @@
 package useCases
 
+import "errors"
+
 type ArgumentParser struct {
-	schema, arguments string
+	Schema, Arguments string
+}
+
+func (a ArgumentParser) Parse() error {
+	return errors.New("invalid arguments")
 }
 
 func (a ArgumentParser) NextArgument() int {
