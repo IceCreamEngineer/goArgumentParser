@@ -74,4 +74,5 @@ Args kata for Go
                                                                                                     
 ```
 ## Tests
-You can run all unit tests with `go test ./...`
+You can run all unit tests by running the `test.sh` script at the root of this repository as `./test.sh`.
+
