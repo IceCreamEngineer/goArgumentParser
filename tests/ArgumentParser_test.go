@@ -17,7 +17,14 @@ func TestNoSchemaButOneArgument(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{Arguments: "-x"}
 	err := argumentParser.Parse()
 	assertThatThereWasAnError(t, err)
-	assertCorrectErrorCode(t, err, 1)
+	assertCorrectErrorCode(t, err, entities.UnexpectedArgument)
+	assertCorrectErrorArgumentId(t, err, "x")
+}
+
+func assertThatThereWasAnError(t *testing.T, err error) {
+	if err == nil {
+		t.Error("Should return err")
+	}
 }
 
 func assertCorrectErrorCode(t *testing.T, err entities.ArgumentError, errorCode int) {
@@ -26,8 +33,8 @@ func assertCorrectErrorCode(t *testing.T, err entities.ArgumentError, errorCode 
 	}
 }
 
-func assertThatThereWasAnError(t *testing.T, err error) {
-	if err == nil {
-		t.Error("Should return err")
+func assertCorrectErrorArgumentId(t *testing.T, err entities.ArgumentError, errorArgumentId string) {
+	if err.ErrorArgumentId != errorArgumentId {
+		t.Error("Should return error argument id ", errorArgumentId)
 	}
 }
