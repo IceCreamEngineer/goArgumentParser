@@ -14,7 +14,15 @@ func TestNoSchemaOrArguments(t *testing.T) {
 }
 
 func TestNoSchemaButOneArgument(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Arguments: "-x"}
+	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x"}}
+	err := argumentParser.Parse()
+	assertThatThereWasAnError(t, err)
+	assertCorrectErrorCode(t, err, entities.UnexpectedArgument)
+	assertCorrectErrorArgumentId(t, err, "x")
+}
+
+func TestNoSchemaButMultipleArguments(t *testing.T) {
+	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x", "-y"}}
 	err := argumentParser.Parse()
 	assertThatThereWasAnError(t, err)
 	assertCorrectErrorCode(t, err, entities.UnexpectedArgument)
