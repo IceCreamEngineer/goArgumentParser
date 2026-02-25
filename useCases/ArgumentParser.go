@@ -6,7 +6,8 @@ import (
 )
 
 type ArgumentParser struct {
-	Schema, Arguments []string
+	Schema    []entities.ArgumentSchemaElement
+	Arguments []string
 }
 
 func (a ArgumentParser) Parse() entities.ArgumentError {

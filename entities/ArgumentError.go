@@ -1,6 +1,7 @@
 package entities
 
 const UnexpectedArgument = 1
+const InvalidArgumentName = 2
 
 type ArgumentError struct {
 	ErrorCode       int

@@ -29,6 +29,13 @@ func TestNoSchemaButMultipleArguments(t *testing.T) {
 	assertCorrectErrorArgumentId(t, err, "x")
 }
 
+func TestNonLetterSchema(t *testing.T) {
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{entities.NewArgumentSchemaElement(Name: "*")}}
+	err := argumentParser.Parse()
+	assertThatThereWasAnError(t, err)
+	assertCorrectErrorCode(t, err, entities.InvalidArgumentName)
+}
+
 func assertThatThereWasAnError(t *testing.T, err error) {
 	if err == nil {
 		t.Error("Should return err")
