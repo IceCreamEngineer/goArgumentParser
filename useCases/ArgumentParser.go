@@ -33,7 +33,7 @@ func (a ArgumentParser) validateSchema() error {
 func validateElement(schemaElement entities.ArgumentSchemaElement) error {
 	for _, r := range schemaElement.Name {
 		if !unicode.IsLetter(r) {
-			return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentName}
+			return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentName, ErrorArgumentId: schemaElement.Name}
 		}
 	}
 	return nil
