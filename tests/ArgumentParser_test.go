@@ -3,9 +3,16 @@ package tests
 import (
 	"errors"
 	"goArgumentParser/entities"
+	"goArgumentParser/ports"
 	"goArgumentParser/useCases"
 	"testing"
 )
+
+var argumentMarshalerFactory *ports.ArgumentMarshalerFactory
+
+func setup() {
+
+}
 
 func TestNoSchemaOrArguments(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{}
@@ -36,6 +43,12 @@ func TestNonLetterSchemaLongName(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", LongName: "**"}}}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.InvalidArgumentName, "**")
+}
+
+func TestInvalidArgumentFormat(t *testing.T) {
+	//argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}}}
+	//err := argumentParser.Parse()
+	//assertCorrectArgumentError(t, err, entities.InvalidArgumentFormat, "f")
 }
 
 func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {

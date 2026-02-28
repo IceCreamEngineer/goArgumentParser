@@ -12,7 +12,7 @@ type ArgumentParser struct {
 }
 
 func (a ArgumentParser) Parse() error {
-	err := a.validateSchema()
+	err := a.parseSchema()
 	if err != nil {
 		return err
 	}
@@ -20,9 +20,9 @@ func (a ArgumentParser) Parse() error {
 		ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
 }
 
-func (a ArgumentParser) validateSchema() error {
+func (a ArgumentParser) parseSchema() error {
 	for _, schemaElement := range a.Schema {
-		err := validateElement(schemaElement)
+		err := a.parseSchemaElement(schemaElement)
 		if err != nil {
 			return err
 		}
@@ -30,7 +30,15 @@ func (a ArgumentParser) validateSchema() error {
 	return nil
 }
 
-func validateElement(schemaElement entities.ArgumentSchemaElement) error {
+func (a ArgumentParser) parseSchemaElement(schemaElement entities.ArgumentSchemaElement) error {
+	validationError := validate(schemaElement)
+	if validationError != nil {
+		return validationError
+	}
+	return nil
+}
+
+func validate(schemaElement entities.ArgumentSchemaElement) error {
 	isAlphaNumericName := isAlphaNumeric(schemaElement.Name)
 	if isAlphaNumericName != nil {
 		return isAlphaNumericName
