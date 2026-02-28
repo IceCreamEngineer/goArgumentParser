@@ -17,22 +17,33 @@ func TestNoSchemaOrArguments(t *testing.T) {
 func TestNoSchemaButOneArgument(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x"}}
 	err := argumentParser.Parse()
-	assertThatThereWasAnError(t, err)
 	assertCorrectArgumentError(t, err, entities.UnexpectedArgument, "x")
 }
 
 func TestNoSchemaButMultipleArguments(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x", "-y"}}
 	err := argumentParser.Parse()
-	assertThatThereWasAnError(t, err)
 	assertCorrectArgumentError(t, err, entities.UnexpectedArgument, "x")
 }
 
 func TestNonLetterSchema(t *testing.T) {
 	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "*"}}}
 	err := argumentParser.Parse()
-	assertThatThereWasAnError(t, err)
 	assertCorrectArgumentError(t, err, entities.InvalidArgumentName, "*")
+}
+
+func TestNonLetterSchemaLongName(t *testing.T) {
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", LongName: "**"}}}
+	err := argumentParser.Parse()
+	assertCorrectArgumentError(t, err, entities.InvalidArgumentName, "**")
+}
+
+func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {
+	assertThatThereWasAnError(t, err)
+	var aErr *entities.ArgumentError
+	errors.As(err, &aErr)
+	assertExpectedErrorField(t, aErr.ErrorCode, errorCode)
+	assertExpectedErrorField(t, aErr.ErrorArgumentId, errorArgumentId)
 }
 
 func assertThatThereWasAnError(t *testing.T, err error) {
@@ -41,13 +52,8 @@ func assertThatThereWasAnError(t *testing.T, err error) {
 	}
 }
 
-func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {
-	var aErr *entities.ArgumentError
-	errors.As(err, &aErr)
-	if aErr.ErrorCode != errorCode {
-		t.Error("Should return error code ", errorCode, " but got ", aErr.ErrorCode)
-	}
-	if aErr.ErrorArgumentId != errorArgumentId {
-		t.Error("Should return error argument id ", errorArgumentId, " but got ", aErr.ErrorArgumentId)
+func assertExpectedErrorField(t *testing.T, actualErrorField any, expectedErrorField any) {
+	if actualErrorField != expectedErrorField {
+		t.Error("Expected ", expectedErrorField, " but got ", actualErrorField)
 	}
 }

@@ -31,9 +31,19 @@ func (a ArgumentParser) validateSchema() error {
 }
 
 func validateElement(schemaElement entities.ArgumentSchemaElement) error {
-	for _, r := range schemaElement.Name {
+	if isAlphaNumeric(schemaElement.Name) != nil {
+		return isAlphaNumeric(schemaElement.Name)
+	}
+	if isAlphaNumeric(schemaElement.LongName) != nil {
+		return isAlphaNumeric(schemaElement.LongName)
+	}
+	return nil
+}
+
+func isAlphaNumeric(elementName string) error {
+	for _, r := range elementName {
 		if !unicode.IsLetter(r) {
-			return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentName, ErrorArgumentId: schemaElement.Name}
+			return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentName, ErrorArgumentId: elementName}
 		}
 	}
 	return nil
