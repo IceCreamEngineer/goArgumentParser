@@ -31,11 +31,13 @@ func (a ArgumentParser) validateSchema() error {
 }
 
 func validateElement(schemaElement entities.ArgumentSchemaElement) error {
-	if isAlphaNumeric(schemaElement.Name) != nil {
-		return isAlphaNumeric(schemaElement.Name)
+	isAlphaNumericName := isAlphaNumeric(schemaElement.Name)
+	if isAlphaNumericName != nil {
+		return isAlphaNumericName
 	}
-	if isAlphaNumeric(schemaElement.LongName) != nil {
-		return isAlphaNumeric(schemaElement.LongName)
+	isAlphaNumericLongName := isAlphaNumeric(schemaElement.LongName)
+	if isAlphaNumericLongName != nil {
+		return isAlphaNumericLongName
 	}
 	return nil
 }
