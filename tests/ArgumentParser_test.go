@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"errors"
 	"goArgumentParser/entities"
 	"goArgumentParser/useCases"
 	"testing"
@@ -30,7 +31,7 @@ func TestNoSchemaButMultipleArguments(t *testing.T) {
 }
 
 func TestNonLetterSchema(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{entities.NewArgumentSchemaElement(Name: "*")}}
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "*"}}}
 	err := argumentParser.Parse()
 	assertThatThereWasAnError(t, err)
 	assertCorrectErrorCode(t, err, entities.InvalidArgumentName)
@@ -42,14 +43,18 @@ func assertThatThereWasAnError(t *testing.T, err error) {
 	}
 }
 
-func assertCorrectErrorCode(t *testing.T, err entities.ArgumentError, errorCode int) {
-	if err.ErrorCode != errorCode {
-		t.Error("Should return error code ", errorCode)
+func assertCorrectErrorCode(t *testing.T, err error, errorCode int) {
+	var aErr *entities.ArgumentError
+	errors.As(err, &aErr)
+	if aErr.ErrorCode != errorCode {
+		t.Error("Should return error code ", errorCode, " but got ", aErr.ErrorCode)
 	}
 }
 
-func assertCorrectErrorArgumentId(t *testing.T, err entities.ArgumentError, errorArgumentId string) {
-	if err.ErrorArgumentId != errorArgumentId {
-		t.Error("Should return error argument id ", errorArgumentId)
+func assertCorrectErrorArgumentId(t *testing.T, err error, errorArgumentId string) {
+	var aErr *entities.ArgumentError
+	errors.As(err, &aErr)
+	if aErr.ErrorArgumentId != errorArgumentId {
+		t.Error("Should return error argument id ", errorArgumentId, " but got ", aErr.ErrorArgumentId)
 	}
 }
