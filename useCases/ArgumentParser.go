@@ -2,13 +2,15 @@ package useCases
 
 import (
 	"goArgumentParser/entities"
+	"goArgumentParser/ports"
 	"strings"
 	"unicode"
 )
 
 type ArgumentParser struct {
-	Schema    []entities.ArgumentSchemaElement
-	Arguments []string
+	Schema           []entities.ArgumentSchemaElement
+	Arguments        []string
+	MarshalerFactory ports.ArgumentMarshalerFactory
 }
 
 func (a ArgumentParser) Parse() error {

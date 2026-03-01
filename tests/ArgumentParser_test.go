@@ -2,16 +2,17 @@ package tests
 
 import (
 	"errors"
+	"goArgumentParser/adapters"
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
 	"goArgumentParser/useCases"
 	"testing"
 )
 
-var argumentMarshalerFactory *ports.ArgumentMarshalerFactory
+var argumentMarshalerFactory ports.ArgumentMarshalerFactory
 
 func setup() {
-
+	argumentMarshalerFactory = adapters.NoArgumentMarshalerFactory{}
 }
 
 func TestNoSchemaOrArguments(t *testing.T) {

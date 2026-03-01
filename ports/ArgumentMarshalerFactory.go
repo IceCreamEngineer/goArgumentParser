@@ -2,5 +2,5 @@ package ports
 
 type ArgumentMarshalerFactory interface {
 	ArgumentTypes() []string
-	CreateFrom(argumentType string) (ArgumentMarshaler, error)
+	CreateFrom(argumentType string) ArgumentMarshaler
 }
