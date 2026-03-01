@@ -47,9 +47,11 @@ func TestNonLetterSchemaLongName(t *testing.T) {
 }
 
 func TestInvalidArgumentFormat(t *testing.T) {
-	//argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}}}
-	//err := argumentParser.Parse()
-	//assertCorrectArgumentError(t, err, entities.InvalidArgumentFormat, "f")
+	setup()
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}},
+		MarshalerFactory: argumentMarshalerFactory}
+	err := argumentParser.Parse()
+	assertCorrectArgumentError(t, err, entities.InvalidArgumentFormat, "f")
 }
 
 func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {

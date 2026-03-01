@@ -3,6 +3,7 @@ package useCases
 import (
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -36,6 +37,9 @@ func (a ArgumentParser) parseSchemaElement(schemaElement entities.ArgumentSchema
 	validationError := validate(schemaElement)
 	if validationError != nil {
 		return validationError
+	}
+	if !slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
+		return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
 	}
 	return nil
 }
