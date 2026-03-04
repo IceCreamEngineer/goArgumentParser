@@ -8,6 +8,12 @@ import (
 	"unicode"
 )
 
+type void struct{}
+
+var argumentsFound = make(map[string]void)
+
+var entry void
+
 type ArgumentParser struct {
 	Schema           []entities.ArgumentSchemaElement
 	Arguments        []string
@@ -15,12 +21,33 @@ type ArgumentParser struct {
 }
 
 func (a ArgumentParser) Parse() error {
-	err := a.parseSchema()
-	if err != nil {
-		return err
+	argumentsFound = make(map[string]void)
+	schemaError := a.parseSchema()
+	if schemaError != nil {
+		return schemaError
+	}
+	a.parseArguments()
+	missingRequiredArgumentError := a.checkForRequiredArguments()
+	if missingRequiredArgumentError != nil {
+		return missingRequiredArgumentError
 	}
 	return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
 		ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
+}
+
+func (a ArgumentParser) parseArguments() {
+	for _, argument := range a.Arguments {
+		a.checkToParseArgumentName(argument, "-")
+		a.checkToParseArgumentName(argument, "--")
+	}
+}
+
+func (a ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
+	isArgumentName := strings.HasPrefix(argument, prefix)
+	if isArgumentName {
+		argumentName := strings.Split(argument, prefix)[len(prefix)]
+		argumentsFound[argumentName] = entry
+	}
 }
 
 func (a ArgumentParser) parseSchema() error {
@@ -63,6 +90,20 @@ func isAlphaNumeric(elementName string) error {
 		}
 	}
 	return nil
+}
+
+func (a ArgumentParser) checkForRequiredArguments() error {
+	for _, element := range a.Schema {
+		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired {
+			return &entities.ArgumentError{ErrorCode: entities.MissingRequiredArgument}
+		}
+	}
+	return nil
+}
+
+func (a ArgumentParser) Has(argument string) bool {
+	_, found := argumentsFound[argument]
+	return found
 }
 
 func (a ArgumentParser) NextArgument() int {

@@ -7,7 +7,7 @@ import (
 type NoArgumentMarshalerFactory struct{}
 
 func (a NoArgumentMarshalerFactory) ArgumentTypes() []string {
-	return []string{}
+	return []string{""}
 }
 
 func (a NoArgumentMarshalerFactory) CreateFrom(argumentType string) ports.ArgumentMarshaler {
