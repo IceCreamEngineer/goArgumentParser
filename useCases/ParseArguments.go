@@ -21,7 +21,6 @@ type ArgumentParser struct {
 }
 
 func (a ArgumentParser) Parse() error {
-	argumentsFound = make(map[string]void)
 	schemaError := a.parseSchema()
 	if schemaError != nil {
 		return schemaError
@@ -33,21 +32,6 @@ func (a ArgumentParser) Parse() error {
 	}
 	return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
 		ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
-}
-
-func (a ArgumentParser) parseArguments() {
-	for _, argument := range a.Arguments {
-		a.checkToParseArgumentName(argument, "-")
-		a.checkToParseArgumentName(argument, "--")
-	}
-}
-
-func (a ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
-	isArgumentName := strings.HasPrefix(argument, prefix)
-	if isArgumentName {
-		argumentName := strings.Split(argument, prefix)[len(prefix)]
-		argumentsFound[argumentName] = entry
-	}
 }
 
 func (a ArgumentParser) parseSchema() error {
@@ -90,6 +74,22 @@ func isAlphaNumeric(elementName string) error {
 		}
 	}
 	return nil
+}
+
+func (a ArgumentParser) parseArguments() {
+	argumentsFound = make(map[string]void)
+	for _, argument := range a.Arguments {
+		a.checkToParseArgumentName(argument, "-")
+		a.checkToParseArgumentName(argument, "--")
+	}
+}
+
+func (a ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
+	isArgumentName := strings.HasPrefix(argument, prefix)
+	if isArgumentName {
+		argumentName := strings.Split(argument, prefix)[len(prefix)]
+		argumentsFound[argumentName] = entry
+	}
 }
 
 func (a ArgumentParser) checkForRequiredArguments() error {
