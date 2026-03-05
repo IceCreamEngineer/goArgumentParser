@@ -16,46 +16,46 @@ func setup() {
 }
 
 func TestNoSchemaOrArguments(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{}
+	argumentParser := &useCases.ArgumentParser{}
 	if argumentParser.NextArgument() != 0 {
 		t.Error("Should return 0")
 	}
 }
 
 func TestNoSchemaButOneArgument(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x"}}
+	argumentParser := &useCases.ArgumentParser{Arguments: []string{"-x"}}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.UnexpectedArgument, "x")
 }
 
 func TestNoSchemaButMultipleArguments(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Arguments: []string{"-x", "-y"}}
+	argumentParser := &useCases.ArgumentParser{Arguments: []string{"-x", "-y"}}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.UnexpectedArgument, "x")
 }
 
 func TestNonLetterSchema(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "*"}}}
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "*"}}}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.InvalidArgumentName, "*")
 }
 
 func TestNonLetterSchemaLongName(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", LongName: "**"}}}
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", LongName: "**"}}}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.InvalidArgumentName, "**")
 }
 
 func TestInvalidArgumentFormat(t *testing.T) {
 	setup()
-	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}},
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}},
 		MarshalerFactory: argumentMarshalerFactory}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.InvalidArgumentFormat, "f")
 }
 
 func TestMissingRequiredArgumentForNoArguments(t *testing.T) {
-	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", IsRequired: true}},
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", IsRequired: true}},
 		MarshalerFactory: argumentMarshalerFactory}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")

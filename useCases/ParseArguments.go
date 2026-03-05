@@ -20,7 +20,7 @@ type ArgumentParser struct {
 	MarshalerFactory ports.ArgumentMarshalerFactory
 }
 
-func (a ArgumentParser) Parse() error {
+func (a *ArgumentParser) Parse() error {
 	schemaError := a.parseSchema()
 	if schemaError != nil {
 		return schemaError
@@ -34,9 +34,9 @@ func (a ArgumentParser) Parse() error {
 		ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
 }
 
-func (a ArgumentParser) parseSchema() error {
+func (a *ArgumentParser) parseSchema() error {
 	for _, schemaElement := range a.Schema {
-		err := a.parseSchemaElement(schemaElement)
+		err := a.parseSchemaElement(&schemaElement)
 		if err != nil {
 			return err
 		}
@@ -44,8 +44,8 @@ func (a ArgumentParser) parseSchema() error {
 	return nil
 }
 
-func (a ArgumentParser) parseSchemaElement(schemaElement entities.ArgumentSchemaElement) error {
-	validationError := validate(schemaElement)
+func (a *ArgumentParser) parseSchemaElement(schemaElement *entities.ArgumentSchemaElement) error {
+	validationError := validate(*schemaElement)
 	if validationError != nil {
 		return validationError
 	}
@@ -76,7 +76,7 @@ func isAlphaNumeric(elementName string) error {
 	return nil
 }
 
-func (a ArgumentParser) parseArguments() {
+func (a *ArgumentParser) parseArguments() {
 	argumentsFound = make(map[string]void)
 	for _, argument := range a.Arguments {
 		a.checkToParseArgumentName(argument, "-")
@@ -84,15 +84,14 @@ func (a ArgumentParser) parseArguments() {
 	}
 }
 
-func (a ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
-	isArgumentName := strings.HasPrefix(argument, prefix)
-	if isArgumentName {
+func (a *ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
+	if strings.HasPrefix(argument, prefix) {
 		argumentName := strings.Split(argument, prefix)[len(prefix)]
 		argumentsFound[argumentName] = entry
 	}
 }
 
-func (a ArgumentParser) checkForRequiredArguments() error {
+func (a *ArgumentParser) checkForRequiredArguments() error {
 	for _, element := range a.Schema {
 		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired {
 			return &entities.ArgumentError{ErrorCode: entities.MissingRequiredArgument}
@@ -101,11 +100,11 @@ func (a ArgumentParser) checkForRequiredArguments() error {
 	return nil
 }
 
-func (a ArgumentParser) Has(argument string) bool {
+func (a *ArgumentParser) Has(argument string) bool {
 	_, found := argumentsFound[argument]
 	return found
 }
 
-func (a ArgumentParser) NextArgument() int {
+func (a *ArgumentParser) NextArgument() int {
 	return 0
 }
