@@ -8,10 +8,15 @@ import (
 	"unicode"
 )
 
+type Names struct {
+	Name, LongName string
+}
+
 // Set data structure to track unique arguments
 type void struct{}
 
 var (
+	marshalers     map[Names]ports.ArgumentMarshaler
 	argumentsFound map[string]void
 	entry          void
 )
@@ -23,20 +28,31 @@ type ArgumentParser struct {
 }
 
 func (a *ArgumentParser) Parse() error {
-	schemaError := a.parseSchema()
-	if schemaError != nil {
-		return schemaError
+	parseError := a.tryToParse()
+	if parseError != nil {
+		return parseError
 	}
-	a.parseArguments()
 	missingRequiredArgumentError := a.checkForRequiredArguments()
 	if missingRequiredArgumentError != nil {
 		return missingRequiredArgumentError
 	}
-	return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
-		ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
+	return nil
+}
+
+func (a *ArgumentParser) tryToParse() error {
+	schemaParsingError := a.parseSchema()
+	if schemaParsingError != nil {
+		return schemaParsingError
+	}
+	argumentParsingError := a.parseArguments()
+	if argumentParsingError != nil {
+		return argumentParsingError
+	}
+	return nil
 }
 
 func (a *ArgumentParser) parseSchema() error {
+	marshalers = make(map[Names]ports.ArgumentMarshaler)
 	for _, schemaElement := range a.Schema {
 		err := a.parseSchemaElement(&schemaElement)
 		if err != nil {
@@ -51,10 +67,21 @@ func (a *ArgumentParser) parseSchemaElement(schemaElement *entities.ArgumentSche
 	if validationError != nil {
 		return validationError
 	}
-	if !slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
-		return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
+	err, done := a.setMarshalerFor(schemaElement)
+	if done {
+		return err
 	}
-	return nil
+	return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
+}
+
+func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaElement) (error, bool) {
+	var marshaler ports.ArgumentMarshaler
+	if slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
+		marshaler = a.MarshalerFactory.CreateFrom(schemaElement.ArgumentType)
+		marshalers[Names{schemaElement.Name, schemaElement.LongName}] = marshaler
+		return nil, true
+	}
+	return nil, false
 }
 
 func validate(schemaElement entities.ArgumentSchemaElement) error {
@@ -78,12 +105,25 @@ func isAlphaNumeric(elementName string) error {
 	return nil
 }
 
-func (a *ArgumentParser) parseArguments() {
+func (a *ArgumentParser) parseArguments() error {
+	unexpectedArgumentError := a.checkForUnexpectedArgument()
+	if unexpectedArgumentError != nil {
+		return unexpectedArgumentError
+	}
 	argumentsFound = make(map[string]void)
 	for _, argument := range a.Arguments {
 		a.checkToParseArgumentName(argument, "-")
 		a.checkToParseArgumentName(argument, "--")
 	}
+	return nil
+}
+
+func (a *ArgumentParser) checkForUnexpectedArgument() error {
+	if len(a.Schema) == 0 && len(a.Arguments) != 0 {
+		return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
+			ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
+	}
+	return nil
 }
 
 func (a *ArgumentParser) checkToParseArgumentName(argument string, prefix string) {

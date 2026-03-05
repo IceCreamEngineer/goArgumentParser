@@ -68,6 +68,14 @@ func TestMissingRequiredArgumentForSomeArgument(t *testing.T) {
 	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")
 }
 
+func TestMissingOptionalArgumentForNoArguments(t *testing.T) {
+	required := false
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x",
+		Required: &required}}, MarshalerFactory: argumentMarshalerFactory}
+	err := argumentParser.Parse()
+	assertThatThereWasNoError(t, err)
+}
+
 func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {
 	assertThatThereWasAnError(t, err)
 	var aErr *entities.ArgumentError
@@ -85,5 +93,11 @@ func assertThatThereWasAnError(t *testing.T, err error) {
 func assertExpectedErrorField(t *testing.T, actualErrorField any, expectedErrorField any) {
 	if actualErrorField != expectedErrorField {
 		t.Error("Expected ", expectedErrorField, " but got ", actualErrorField)
+	}
+}
+
+func assertThatThereWasNoError(t *testing.T, err error) {
+	if err != nil {
+		t.Error("Should not return an error")
 	}
 }
