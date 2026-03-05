@@ -95,7 +95,7 @@ func (a *ArgumentParser) checkToParseArgumentName(argument string, prefix string
 
 func (a *ArgumentParser) checkForRequiredArguments() error {
 	for _, element := range a.Schema {
-		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired {
+		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired() {
 			return &entities.ArgumentError{ErrorCode: entities.MissingRequiredArgument}
 		}
 	}

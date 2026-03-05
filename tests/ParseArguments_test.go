@@ -55,15 +55,15 @@ func TestInvalidArgumentFormat(t *testing.T) {
 }
 
 func TestMissingRequiredArgumentForNoArguments(t *testing.T) {
-	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", IsRequired: true}},
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"}},
 		MarshalerFactory: argumentMarshalerFactory}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")
 }
 
 func TestMissingRequiredArgumentForSomeArgument(t *testing.T) {
-	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", IsRequired: true},
-		{Name: "y", IsRequired: true}}, Arguments: []string{"-x"}, MarshalerFactory: argumentMarshalerFactory}
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"},
+		{Name: "y"}}, Arguments: []string{"-x"}, MarshalerFactory: argumentMarshalerFactory}
 	err := argumentParser.Parse()
 	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")
 }

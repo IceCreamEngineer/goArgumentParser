@@ -2,5 +2,8 @@ package entities
 
 type ArgumentSchemaElement struct {
 	Name, ArgumentType, Description, LongName string
-	IsRequired                                bool `default:"true"`
+	Required                                  *bool
 }
+
+// IsRequired Default Required to true if unset
+func (a *ArgumentSchemaElement) IsRequired() bool { return a.Required == nil || *a.Required }
