@@ -8,11 +8,13 @@ import (
 	"unicode"
 )
 
+// Set data structure to track unique arguments
 type void struct{}
 
-var argumentsFound = make(map[string]void)
-
-var entry void
+var (
+	argumentsFound map[string]void
+	entry          void
+)
 
 type ArgumentParser struct {
 	Schema           []entities.ArgumentSchemaElement

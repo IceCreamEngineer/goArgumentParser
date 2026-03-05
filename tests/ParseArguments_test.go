@@ -61,6 +61,13 @@ func TestMissingRequiredArgumentForNoArguments(t *testing.T) {
 	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")
 }
 
+func TestMissingRequiredArgumentForSomeArgument(t *testing.T) {
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x", IsRequired: true},
+		{Name: "y", IsRequired: true}}, Arguments: []string{"-x"}, MarshalerFactory: argumentMarshalerFactory}
+	err := argumentParser.Parse()
+	assertCorrectArgumentError(t, err, entities.MissingRequiredArgument, "")
+}
+
 func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {
 	assertThatThereWasAnError(t, err)
 	var aErr *entities.ArgumentError
