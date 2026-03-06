@@ -78,8 +78,7 @@ func TestExtraArgumentsThatLookLikeFlags(t *testing.T) {
 	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"}, {Name: "y",
 		Required: &required}}, Arguments: []string{"-x", "alpha", "-y", "alpha"},
 		MarshalerFactory: argumentMarshalerFactory}
-	parseError := argumentParser.Parse()
-	assertThatThereWasNoError(t, parseError)
+	assertThatThereWasNoError(t, argumentParser.Parse())
 	assertParsed(t, argumentParser, "x")
 	assertParsed(t, argumentParser, "y")
 	assertNoNextArgument(t, argumentParser)
