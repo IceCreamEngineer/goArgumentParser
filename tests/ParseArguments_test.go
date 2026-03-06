@@ -17,9 +17,7 @@ func setup() {
 
 func TestNoSchemaOrArguments(t *testing.T) {
 	argumentParser := &useCases.ArgumentParser{}
-	if argumentParser.NextArgument() != 0 {
-		t.Error("Should return 0")
-	}
+	assertNoNextArgument(t, argumentParser)
 }
 
 func TestNoSchemaButOneArgument(t *testing.T) {
@@ -75,6 +73,18 @@ func TestMissingOptionalArgumentForSomeArgument(t *testing.T) {
 	assertThatThereWasNoError(t, argumentParser.Parse())
 }
 
+func TestExtraArgumentsThatLookLikeFlags(t *testing.T) {
+	required := false
+	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"}, {Name: "y",
+		Required: &required}}, Arguments: []string{"-x", "alpha", "-y", "alpha"},
+		MarshalerFactory: argumentMarshalerFactory}
+	parseError := argumentParser.Parse()
+	assertThatThereWasNoError(t, parseError)
+	assertParsed(t, argumentParser, "x")
+	assertParsed(t, argumentParser, "y")
+	assertNoNextArgument(t, argumentParser)
+}
+
 func assertCorrectArgumentError(t *testing.T, err error, errorCode int, errorArgumentId string) {
 	assertThatThereWasAnError(t, err)
 	var aErr *entities.ArgumentError
@@ -98,5 +108,17 @@ func assertExpectedErrorField(t *testing.T, actualErrorField any, expectedErrorF
 func assertThatThereWasNoError(t *testing.T, err error) {
 	if err != nil {
 		t.Error("Should not return an error")
+	}
+}
+
+func assertParsed(t *testing.T, argumentParser *useCases.ArgumentParser, argument string) {
+	if !argumentParser.Has(argument) {
+		t.Error("Should have parsed ", argument)
+	}
+}
+
+func assertNoNextArgument(t *testing.T, argumentParser *useCases.ArgumentParser) {
+	if argumentParser.NextArgument() != 0 {
+		t.Error("Should return 0")
 	}
 }
