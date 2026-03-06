@@ -54,9 +54,9 @@ func (a *ArgumentParser) tryToParse() error {
 func (a *ArgumentParser) parseSchema() error {
 	marshalers = make(map[Names]ports.ArgumentMarshaler)
 	for _, schemaElement := range a.Schema {
-		err := a.parseSchemaElement(&schemaElement)
-		if err != nil {
-			return err
+		schemaElementParseError := a.parseSchemaElement(&schemaElement)
+		if schemaElementParseError != nil {
+			return schemaElementParseError
 		}
 	}
 	return nil
@@ -67,21 +67,22 @@ func (a *ArgumentParser) parseSchemaElement(schemaElement *entities.ArgumentSche
 	if validationError != nil {
 		return validationError
 	}
-	err, done := a.setMarshalerFor(schemaElement)
-	if done {
-		return err
+	marshalerError := a.setMarshalerFor(schemaElement)
+	if marshalerError != nil {
+		return marshalerError
 	}
-	return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
+	return nil
 }
 
-func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaElement) (error, bool) {
+func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaElement) error {
 	var marshaler ports.ArgumentMarshaler
 	if slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
 		marshaler = a.MarshalerFactory.CreateFrom(schemaElement.ArgumentType)
 		marshalers[Names{schemaElement.Name, schemaElement.LongName}] = marshaler
-		return nil, true
+		return nil
+	} else {
+		return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
 	}
-	return nil, false
 }
 
 func validate(schemaElement entities.ArgumentSchemaElement) error {
