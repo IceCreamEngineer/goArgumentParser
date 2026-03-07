@@ -3,6 +3,7 @@ package useCases
 import (
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
+	"iter"
 	"slices"
 	"strings"
 	"unicode"
@@ -16,9 +17,10 @@ type Names struct {
 type void struct{}
 
 var (
-	marshalers     map[Names]ports.ArgumentMarshaler
-	argumentsFound map[string]void
-	entry          void
+	currentArgument iter.Seq[any]
+	marshalers      map[Names]ports.ArgumentMarshaler
+	argumentsFound  map[string]void
+	entry           void
 )
 
 type ArgumentParser struct {
