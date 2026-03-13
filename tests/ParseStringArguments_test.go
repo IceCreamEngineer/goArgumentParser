@@ -8,21 +8,17 @@ import (
 	"testing"
 )
 
-var _argumentMarshalerFactory ports.ArgumentMarshalerFactory
+var stringsArgumentMarshalerFactory ports.ArgumentMarshalerFactory
 
-func _setup() {
-	_argumentMarshalerFactory = adapters.StringsArgumentMarshalerFactory{}
+func stringsSetup() {
+	stringsArgumentMarshalerFactory = adapters.StringsArgumentMarshalerFactory{}
 }
 
 func TestSimpleStringPresent(t *testing.T) {
-	_setup()
+	stringsSetup()
 	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x",
-		ArgumentType: "*"}}, Arguments: []string{"-x", "param"}, MarshalerFactory: _argumentMarshalerFactory}
+		ArgumentType: "*"}}, Arguments: []string{"-x", "param"}, MarshalerFactory: stringsArgumentMarshalerFactory}
 	parseError := argumentParser.Parse()
-	if parseError != nil {
-		t.Error(parseError)
-	}
-	if !argumentParser.Has("x") {
-		t.Error("Expected x")
-	}
+	AssertThatThereWasNoError(t, parseError)
+	AssertParsed(t, &argumentParser, "x")
 }
