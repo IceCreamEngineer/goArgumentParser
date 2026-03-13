@@ -115,8 +115,8 @@ func (a *ArgumentParser) parseArguments() error {
 	}
 	argumentsFound = make(map[string]void)
 	for _, argument := range a.Arguments {
-		a.checkToParseArgumentName(argument, "-")
 		a.checkToParseArgumentName(argument, "--")
+		a.checkToParseArgumentName(argument, "-")
 	}
 	return nil
 }
@@ -131,7 +131,7 @@ func (a *ArgumentParser) checkForUnexpectedArgument() error {
 
 func (a *ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
 	if strings.HasPrefix(argument, prefix) {
-		argumentName := strings.Split(argument, prefix)[len(prefix)]
+		argumentName := strings.Split(argument, prefix)[1]
 		argumentsFound[argumentName] = entry
 	}
 }

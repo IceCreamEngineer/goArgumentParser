@@ -23,7 +23,7 @@ func AssertThatThereWasAnError(t *testing.T, err error) {
 
 func assertExpectedErrorField(t *testing.T, actualErrorField any, expectedErrorField any) {
 	if actualErrorField != expectedErrorField {
-		t.Error("Expected ", expectedErrorField, " but got ", actualErrorField)
+		t.Error("Expected", expectedErrorField, " but got", actualErrorField)
 	}
 }
 
@@ -35,6 +35,6 @@ func AssertThatThereWasNoError(t *testing.T, err error) {
 
 func AssertParsed(t *testing.T, argumentParser *useCases.ArgumentParser, argument string) {
 	if !argumentParser.Has(argument) {
-		t.Error("Should have parsed ", argument)
+		t.Error("Should have parsed", argument)
 	}
 }

@@ -22,3 +22,13 @@ func TestSimpleStringPresent(t *testing.T) {
 	AssertThatThereWasNoError(t, parseError)
 	AssertParsed(t, &argumentParser, "x")
 }
+
+func TestLongStringName(t *testing.T) {
+	stringsSetup()
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x",
+		LongName: "excelsior", ArgumentType: "*"}}, Arguments: []string{"--excelsior", "alpha"},
+		MarshalerFactory: stringsArgumentMarshalerFactory}
+	parseError := argumentParser.Parse()
+	AssertThatThereWasNoError(t, parseError)
+	AssertParsed(t, &argumentParser, "excelsior")
+}
