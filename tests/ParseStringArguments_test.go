@@ -32,3 +32,10 @@ func TestLongStringName(t *testing.T) {
 	AssertThatThereWasNoError(t, parseError)
 	AssertParsed(t, &argumentParser, "excelsior")
 }
+
+func TestMissingStringArgument(t *testing.T) {
+	stringsSetup()
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x",
+		ArgumentType: "*"}}, Arguments: []string{"-x"}, MarshalerFactory: stringsArgumentMarshalerFactory}
+	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.MissingString, "x")
+}

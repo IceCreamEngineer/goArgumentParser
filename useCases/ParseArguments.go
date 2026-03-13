@@ -18,7 +18,7 @@ type void struct{}
 
 var (
 	currentArgument iter.Seq[any]
-	marshalers      map[Names]ports.ArgumentMarshaler
+	marshalers      map[*Names]ports.ArgumentMarshaler
 	argumentsFound  map[string]void
 	entry           void
 )
@@ -54,7 +54,7 @@ func (a *ArgumentParser) tryToParse() error {
 }
 
 func (a *ArgumentParser) parseSchema() error {
-	marshalers = make(map[Names]ports.ArgumentMarshaler)
+	marshalers = make(map[*Names]ports.ArgumentMarshaler)
 	for _, schemaElement := range a.Schema {
 		schemaElementParseError := a.parseSchemaElement(&schemaElement)
 		if schemaElementParseError != nil {
@@ -80,7 +80,7 @@ func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaE
 	var marshaler ports.ArgumentMarshaler
 	if slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
 		marshaler = a.MarshalerFactory.CreateFrom(schemaElement.ArgumentType)
-		marshalers[Names{schemaElement.Name, schemaElement.LongName}] = marshaler
+		marshalers[&Names{schemaElement.Name, schemaElement.LongName}] = marshaler
 		return nil
 	} else {
 		return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
@@ -117,6 +117,22 @@ func (a *ArgumentParser) parseArguments() error {
 	for _, argument := range a.Arguments {
 		a.checkToParseArgumentName(argument, "--")
 		a.checkToParseArgumentName(argument, "-")
+		matchingNames := a.matchingNamesFor(argument)
+		if !strings.HasPrefix(argument, "--") && !strings.HasPrefix(argument, "-") && matchingNames != nil {
+			return marshalers[matchingNames].Set(currentArgument)
+		}
+	}
+	return nil
+}
+
+func (a *ArgumentParser) matchingNamesFor(argument string) *Names {
+	for names := range marshalers {
+		if !strings.HasPrefix(argument, "-") {
+			continue
+		}
+		if strings.Split(argument, "-")[1] == names.Name || strings.Split(argument, "--")[1] == names.LongName {
+			return names
+		}
 	}
 	return nil
 }
