@@ -13,7 +13,6 @@ type Names struct {
 	Name, LongName string
 }
 
-// Set data structure to track unique arguments
 type void struct{}
 
 var (
@@ -125,11 +124,11 @@ func (a *ArgumentParser) parseArguments() error {
 		if strings.HasPrefix(argument, "--") {
 			argumentName := strings.Split(argument, "--")[1]
 			argumentsFound[argumentName] = entry
-		}
-
-		if strings.HasPrefix(argument, "-") {
+		} else if strings.HasPrefix(argument, "-") {
 			argumentName := strings.Split(argument, "-")[1]
 			argumentsFound[argumentName] = entry
+		} else {
+			continue
 		}
 
 		if strings.HasPrefix(argument, "--") || strings.HasPrefix(argument, "-") {
@@ -205,5 +204,8 @@ func (a *ArgumentParser) Has(argument string) bool {
 }
 
 func (a *ArgumentParser) NextArgument() int {
-	return 0
+	if len(argumentsFound) == 0 {
+		return 0
+	}
+	return len(argumentsFound) - 1
 }
