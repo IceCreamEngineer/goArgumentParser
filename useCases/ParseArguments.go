@@ -82,9 +82,8 @@ func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaE
 		marshaler = a.MarshalerFactory.CreateFrom(schemaElement.ArgumentType)
 		marshalers[&Names{schemaElement.Name, schemaElement.LongName}] = marshaler
 		return nil
-	} else {
-		return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
 	}
+	return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
 }
 
 func validate(schemaElement entities.ArgumentSchemaElement) error {
@@ -114,27 +113,73 @@ func (a *ArgumentParser) parseArguments() error {
 		return unexpectedArgumentError
 	}
 	argumentsFound = make(map[string]void)
-	for _, argument := range a.Arguments {
-		a.checkToParseArgumentName(argument, "--")
-		a.checkToParseArgumentName(argument, "-")
-		matchingNames := a.matchingNamesFor(argument)
-		if !strings.HasPrefix(argument, "--") && !strings.HasPrefix(argument, "-") && matchingNames != nil {
-			return marshalers[matchingNames].Set(currentArgument)
+	var matchingNames *Names = nil
+	currentArgument = seq(a.Arguments)
+	next, stop := iter.Pull(currentArgument)
+	defer stop()
+	ok := true
+	var argument string
+	for ok {
+		ok, argument = a.nextArgument(next)
+
+		if strings.HasPrefix(argument, "--") {
+			argumentName := strings.Split(argument, "--")[1]
+			argumentsFound[argumentName] = entry
+		}
+
+		if strings.HasPrefix(argument, "-") {
+			argumentName := strings.Split(argument, "-")[1]
+			argumentsFound[argumentName] = entry
+		}
+
+		if strings.HasPrefix(argument, "--") || strings.HasPrefix(argument, "-") {
+			matchingNames = a.matchingNamesFor(argument)
+		}
+
+		if strings.HasPrefix(argument, "-") && matchingNames != nil {
+			marshalError := marshalers[matchingNames].Set(next)
+			if marshalError != nil {
+				return marshalError
+			}
 		}
 	}
 	return nil
 }
 
+func (a *ArgumentParser) nextArgument(next func() (any, bool)) (bool, string) {
+	nextArgument, ok := next()
+	if !ok {
+		return false, ""
+	}
+	argument := nextArgument.(string)
+	return ok, argument
+}
+
+func seq(s []string) iter.Seq[any] {
+	return func(yield func(any) bool) {
+		for _, v := range s {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+func (a *ArgumentParser) isArgumentValue(argument string) bool {
+	return !strings.HasPrefix(argument, "--") && !strings.HasPrefix(argument, "-")
+}
+
 func (a *ArgumentParser) matchingNamesFor(argument string) *Names {
 	for names := range marshalers {
-		if !strings.HasPrefix(argument, "-") {
-			continue
-		}
-		if strings.Split(argument, "-")[1] == names.Name || strings.Split(argument, "--")[1] == names.LongName {
+		if strings.Split(argument, "-")[1] == names.Name || a.isLongName(argument, names) {
 			return names
 		}
 	}
 	return nil
+}
+
+func (a *ArgumentParser) isLongName(argument string, names *Names) bool {
+	return strings.HasPrefix(argument, "--") && strings.Split(argument, "--")[1] == names.LongName
 }
 
 func (a *ArgumentParser) checkForUnexpectedArgument() error {
@@ -143,13 +188,6 @@ func (a *ArgumentParser) checkForUnexpectedArgument() error {
 			ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
 	}
 	return nil
-}
-
-func (a *ArgumentParser) checkToParseArgumentName(argument string, prefix string) {
-	if strings.HasPrefix(argument, prefix) {
-		argumentName := strings.Split(argument, prefix)[1]
-		argumentsFound[argumentName] = entry
-	}
 }
 
 func (a *ArgumentParser) checkForRequiredArguments() error {

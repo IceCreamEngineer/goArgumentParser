@@ -3,21 +3,18 @@ package adapters
 import (
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
-	"iter"
 )
 
 var stringValue string
 
 type StringArgumentMarshaler struct{}
 
-func (m StringArgumentMarshaler) Set(currentArgument iter.Seq[any]) error {
-	next, stop := iter.Pull(currentArgument)
-	defer stop()
-	aValue, ok := next()
-	stringValue = aValue.(string)
+func (m StringArgumentMarshaler) Set(nextArgument func() (any, bool)) error {
+	aValue, ok := nextArgument()
 	if !ok {
 		return &entities.ArgumentError{ErrorCode: entities.MissingString}
 	}
+	stringValue = aValue.(string)
 	return nil
 }
 

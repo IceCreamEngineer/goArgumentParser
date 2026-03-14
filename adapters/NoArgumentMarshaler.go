@@ -2,12 +2,11 @@ package adapters
 
 import (
 	"goArgumentParser/ports"
-	"iter"
 )
 
 type NoArgumentMarshaler struct{}
 
-func (m NoArgumentMarshaler) Set(currentArgument iter.Seq[any]) error {
+func (m NoArgumentMarshaler) Set(nextArgument func() (any, bool)) error {
 	return nil
 }
 

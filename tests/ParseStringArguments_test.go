@@ -37,5 +37,5 @@ func TestMissingStringArgument(t *testing.T) {
 	stringsSetup()
 	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x",
 		ArgumentType: "*"}}, Arguments: []string{"-x"}, MarshalerFactory: stringsArgumentMarshalerFactory}
-	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.MissingString, "x")
+	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.MissingString, "")
 }

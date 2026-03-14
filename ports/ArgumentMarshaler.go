@@ -1,8 +1,6 @@
 package ports
 
-import "iter"
-
 type ArgumentMarshaler interface {
-	Set(currentArgument iter.Seq[any]) error
+	Set(nextArgument func() (any, bool)) error
 	GetValueFrom(marshaler ArgumentMarshaler) any
 }

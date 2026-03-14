@@ -10,7 +10,7 @@ import (
 
 var noArgumentMarshalerFactory ports.ArgumentMarshalerFactory
 
-func noSetup() {
+func simpleSetup() {
 	noArgumentMarshalerFactory = adapters.NoArgumentMarshalerFactory{}
 }
 
@@ -40,19 +40,21 @@ func TestNonLetterSchemaLongName(t *testing.T) {
 }
 
 func TestInvalidArgumentFormat(t *testing.T) {
-	noSetup()
+	simpleSetup()
 	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", ArgumentType: "~"}},
 		MarshalerFactory: noArgumentMarshalerFactory}
 	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.InvalidArgumentFormat, "f")
 }
 
 func TestMissingRequiredArgumentForNoArguments(t *testing.T) {
+	simpleSetup()
 	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"}},
 		MarshalerFactory: noArgumentMarshalerFactory}
 	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.MissingRequiredArgument, "")
 }
 
 func TestMissingRequiredArgumentForSomeArgument(t *testing.T) {
+	simpleSetup()
 	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"},
 		{Name: "y"}}, Arguments: []string{"-x"}, MarshalerFactory: noArgumentMarshalerFactory}
 	AssertCorrectArgumentError(t, argumentParser.Parse(), entities.MissingRequiredArgument, "")
@@ -73,6 +75,7 @@ func TestMissingOptionalArgumentForSomeArgument(t *testing.T) {
 }
 
 func TestExtraArgumentsThatLookLikeFlags(t *testing.T) {
+	simpleSetup()
 	required := false
 	argumentParser := &useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "x"}, {Name: "y",
 		Required: &required}}, Arguments: []string{"-x", "alpha", "-y", "alpha"},
