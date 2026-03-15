@@ -1,6 +1,7 @@
 package useCases
 
 import (
+	"errors"
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
 	"iter"
@@ -23,14 +24,19 @@ var (
 )
 
 type ArgumentParser struct {
-	Schema           []entities.ArgumentSchemaElement
-	Arguments        []string
-	MarshalerFactory ports.ArgumentMarshalerFactory
+	Schema               []entities.ArgumentSchemaElement
+	Arguments            []string
+	MarshalerFactory     ports.ArgumentMarshalerFactory
+	HelpMessagePresenter HelpMessagePresenter
 }
 
 func (a *ArgumentParser) Parse() error {
 	parseError := a.tryToParse()
 	if parseError != nil {
+		if errors.Is(parseError, &PresentHelp{}) {
+			a.HelpMessagePresenter.PresentHelpMessage(a.Schema)
+			return nil
+		}
 		return parseError
 	}
 	missingRequiredArgumentError := a.checkForRequiredArguments()
@@ -44,10 +50,6 @@ func (a *ArgumentParser) tryToParse() error {
 	schemaParsingError := a.parseSchema()
 	if schemaParsingError != nil {
 		return schemaParsingError
-	}
-	unexpectedArgumentError := a.checkForUnexpectedArgument()
-	if unexpectedArgumentError != nil {
-		return unexpectedArgumentError
 	}
 	argumentParsingError := a.parseArguments()
 	if argumentParsingError != nil {
@@ -110,14 +112,6 @@ func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaE
 	return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
 }
 
-func (a *ArgumentParser) checkForUnexpectedArgument() error {
-	if len(a.Schema) == 0 && len(a.Arguments) != 0 {
-		return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
-			ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
-	}
-	return nil
-}
-
 func (a *ArgumentParser) parseArguments() error {
 	matchingNames, argument := a.initializeArgumentTracking()
 	next, stop := iter.Pull(currentArgument)
@@ -169,6 +163,10 @@ func (a *ArgumentParser) isArgumentValue(argument string) bool {
 
 func (a *ArgumentParser) parseArgument(matchingNames *Names, argument string, next func() (any, bool)) error {
 	matchingNames = a.matchingNamesFor(argument)
+	expectedArgumentError := a.checkForExpected(argument, matchingNames)
+	if expectedArgumentError != nil {
+		return expectedArgumentError
+	}
 	argumentsFound[a.parseArgumentNameFrom(argument)] = entry
 	marshaler := marshalers[matchingNames]
 	marshalError := marshaler.Set(next)
@@ -183,6 +181,17 @@ func (a *ArgumentParser) matchingNamesFor(argument string) *Names {
 		if strings.Split(argument, "-")[1] == names.Name || a.isLongName(argument, names) {
 			return names
 		}
+	}
+	return nil
+}
+
+func (a *ArgumentParser) checkForExpected(argument string, matchingNames *Names) error {
+	if argument == "-h" || argument == "--help" {
+		return &PresentHelp{}
+	}
+	if matchingNames == nil {
+		return &entities.ArgumentError{ErrorCode: entities.UnexpectedArgument,
+			ErrorArgumentId: strings.Split(a.Arguments[0], "-")[1]}
 	}
 	return nil
 }
@@ -234,4 +243,10 @@ func (a *ArgumentParser) GetValueOf(names Names) any {
 		return nil
 	}
 	return marshaler.GetValue()
+}
+
+type PresentHelp struct{}
+
+func (p PresentHelp) Error() string {
+	return ""
 }
