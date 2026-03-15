@@ -46,4 +46,5 @@ func TestExtraArguments(t *testing.T) {
 		ArgumentType: "*"}}, Arguments: []string{"-y", "alpha", "beta"}, MarshalerFactory: stringsArgumentMarshalerFactory}
 	AssertThatThereWasNoError(t, argumentParser.Parse())
 	AssertArgumentValue(t, argumentParser, useCases.Names{Name: "y"}, "alpha")
+	AssertNextArgument(t, &argumentParser, 0)
 }

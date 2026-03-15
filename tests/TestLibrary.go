@@ -45,3 +45,9 @@ func AssertArgumentValue(t *testing.T, argumentParser useCases.ArgumentParser, a
 		t.Error("Should have parsed", argumentValue)
 	}
 }
+
+func AssertNextArgument(t *testing.T, argumentParser *useCases.ArgumentParser, nextArgument int) {
+	if argumentParser.NextArgument() != nextArgument {
+		t.Error("Should return", nextArgument)
+	}
+}

@@ -16,7 +16,7 @@ func simpleSetup() {
 
 func TestNoSchemaOrArguments(t *testing.T) {
 	argumentParser := &useCases.ArgumentParser{}
-	assertNextArgument(t, argumentParser, 0)
+	AssertNextArgument(t, argumentParser, 0)
 }
 
 func TestNoSchemaButOneArgument(t *testing.T) {
@@ -83,11 +83,5 @@ func TestExtraArgumentsThatLookLikeFlags(t *testing.T) {
 	AssertThatThereWasNoError(t, argumentParser.Parse())
 	AssertParsed(t, argumentParser, "x")
 	AssertParsed(t, argumentParser, "y")
-	assertNextArgument(t, argumentParser, 1)
-}
-
-func assertNextArgument(t *testing.T, argumentParser *useCases.ArgumentParser, nextArgument int) {
-	if argumentParser.NextArgument() != nextArgument {
-		t.Error("Should return", nextArgument)
-	}
+	AssertNextArgument(t, argumentParser, 1)
 }
