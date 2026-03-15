@@ -170,7 +170,8 @@ func (a *ArgumentParser) isArgumentValue(argument string) bool {
 func (a *ArgumentParser) parseArgument(matchingNames *Names, argument string, next func() (any, bool)) error {
 	matchingNames = a.matchingNamesFor(argument)
 	argumentsFound[a.parseArgumentNameFrom(argument)] = entry
-	marshalError := marshalers[matchingNames].Set(next)
+	marshaler := marshalers[matchingNames]
+	marshalError := marshaler.Set(next)
 	if marshalError != nil {
 		return marshalError
 	}
@@ -219,4 +220,18 @@ func (a *ArgumentParser) NextArgument() int {
 		return 0
 	}
 	return len(argumentsFound) - 1
+}
+
+func (a *ArgumentParser) GetValueOf(names Names) any {
+	var marshaler ports.ArgumentMarshaler
+	for _names, _marshaler := range marshalers {
+		if _names.Name == names.Name || _names.LongName == names.LongName {
+			marshaler = _marshaler
+			break
+		}
+	}
+	if marshaler == nil {
+		return nil
+	}
+	return marshaler.GetValue()
 }

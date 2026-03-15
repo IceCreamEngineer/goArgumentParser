@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"goArgumentParser/entities"
-	"goArgumentParser/ports"
 )
 
 var stringValue string
@@ -18,6 +17,6 @@ func (m StringArgumentMarshaler) Set(nextArgument func() (any, bool)) error {
 	return nil
 }
 
-func (m StringArgumentMarshaler) GetValueFrom(marshaler ports.ArgumentMarshaler) any {
+func (m StringArgumentMarshaler) GetValue() any {
 	return stringValue
 }
