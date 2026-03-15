@@ -32,12 +32,9 @@ type ArgumentParser struct {
 
 func (a *ArgumentParser) Parse() error {
 	parseError := a.tryToParse()
-	if parseError != nil {
-		if errors.Is(parseError, &PresentHelp{}) {
-			a.HelpMessagePresenter.PresentHelpMessage(a.Schema)
-			return nil
-		}
-		return parseError
+	handledError := a.handleParseError(parseError)
+	if handledError != nil {
+		return handledError
 	}
 	missingRequiredArgumentError := a.checkForRequiredArguments()
 	if missingRequiredArgumentError != nil {
@@ -210,6 +207,17 @@ func (a *ArgumentParser) parseArgumentNameFrom(argument string) string {
 	return argumentName
 }
 
+func (a *ArgumentParser) handleParseError(parseError error) error {
+	if parseError != nil {
+		if errors.Is(parseError, &PresentHelp{}) {
+			a.HelpMessagePresenter.PresentHelpMessage(a.Schema)
+			return nil
+		}
+		return parseError
+	}
+	return nil
+}
+
 func (a *ArgumentParser) checkForRequiredArguments() error {
 	for _, element := range a.Schema {
 		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired() {
@@ -232,17 +240,12 @@ func (a *ArgumentParser) NextArgument() int {
 }
 
 func (a *ArgumentParser) GetValueOf(names Names) any {
-	var marshaler ports.ArgumentMarshaler
-	for _names, _marshaler := range marshalers {
+	for _names, marshaler := range marshalers {
 		if _names.Name == names.Name || _names.LongName == names.LongName {
-			marshaler = _marshaler
-			break
+			return marshaler.GetValue()
 		}
 	}
-	if marshaler == nil {
-		return nil
-	}
-	return marshaler.GetValue()
+	return nil
 }
 
 type PresentHelp struct{}
