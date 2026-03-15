@@ -39,7 +39,7 @@ func AssertParsed(t *testing.T, argumentParser *useCases.ArgumentParser, argumen
 	}
 }
 
-func AssertArgumentValue(t *testing.T, argumentParser useCases.ArgumentParser, argumentNames useCases.Names,
+func AssertArgumentValue(t *testing.T, argumentParser useCases.ArgumentParser, argumentNames entities.ArgumentNames,
 	argumentValue string) {
 	if argumentParser.GetValueOf(argumentNames) != argumentValue {
 		t.Error("Should have parsed", argumentValue)

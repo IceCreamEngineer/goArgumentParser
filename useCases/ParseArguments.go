@@ -10,17 +10,10 @@ import (
 	"unicode"
 )
 
-type Names struct {
-	Name, LongName string
-}
-
-type void struct{}
-
 var (
 	currentArgument iter.Seq[any]
-	marshalers      map[*Names]ports.ArgumentMarshaler
-	argumentsFound  map[string]void
-	entry           void
+	marshalers      map[*entities.ArgumentNames]ports.ArgumentMarshaler
+	argumentsFound  entities.ArgumentSet
 )
 
 type ArgumentParser struct {
@@ -56,7 +49,7 @@ func (a *ArgumentParser) tryToParse() error {
 }
 
 func (a *ArgumentParser) parseSchema() error {
-	marshalers = make(map[*Names]ports.ArgumentMarshaler)
+	marshalers = make(map[*entities.ArgumentNames]ports.ArgumentMarshaler)
 	for _, schemaElement := range a.Schema {
 		schemaElementParseError := a.parseSchemaElement(&schemaElement)
 		if schemaElementParseError != nil {
@@ -103,7 +96,7 @@ func (a *ArgumentParser) setMarshalerFor(schemaElement *entities.ArgumentSchemaE
 	var marshaler ports.ArgumentMarshaler
 	if slices.Contains(a.MarshalerFactory.ArgumentTypes(), schemaElement.ArgumentType) {
 		marshaler = a.MarshalerFactory.CreateFrom(schemaElement.ArgumentType)
-		marshalers[&Names{schemaElement.Name, schemaElement.LongName}] = marshaler
+		marshalers[&entities.ArgumentNames{schemaElement.Name, schemaElement.LongName}] = marshaler
 		return nil
 	}
 	return &entities.ArgumentError{ErrorCode: entities.InvalidArgumentFormat, ErrorArgumentId: schemaElement.Name}
@@ -127,9 +120,9 @@ func (a *ArgumentParser) parseArguments() error {
 	return nil
 }
 
-func (a *ArgumentParser) initializeArgumentTracking() (*Names, string) {
-	argumentsFound = make(map[string]void)
-	var matchingNames *Names
+func (a *ArgumentParser) initializeArgumentTracking() (*entities.ArgumentNames, string) {
+	argumentsFound = entities.NewArgumentSet()
+	var matchingNames *entities.ArgumentNames
 	currentArgument = createIteratorFrom(a.Arguments)
 	var argument string
 	return matchingNames, argument
@@ -158,13 +151,13 @@ func (a *ArgumentParser) isArgumentValue(argument string) bool {
 	return !strings.HasPrefix(argument, "--") && !strings.HasPrefix(argument, "-")
 }
 
-func (a *ArgumentParser) parseArgument(matchingNames *Names, argument string, next func() (any, bool)) error {
+func (a *ArgumentParser) parseArgument(matchingNames *entities.ArgumentNames, argument string, next func() (any, bool)) error {
 	matchingNames = a.matchingNamesFor(argument)
 	expectedArgumentError := a.checkForExpected(argument, matchingNames)
 	if expectedArgumentError != nil {
 		return expectedArgumentError
 	}
-	argumentsFound[a.parseArgumentNameFrom(argument)] = entry
+	argumentsFound.Add(a.parseArgumentNameFrom(argument))
 	marshaler := marshalers[matchingNames]
 	marshalError := marshaler.Set(next)
 	if marshalError != nil {
@@ -173,7 +166,7 @@ func (a *ArgumentParser) parseArgument(matchingNames *Names, argument string, ne
 	return nil
 }
 
-func (a *ArgumentParser) matchingNamesFor(argument string) *Names {
+func (a *ArgumentParser) matchingNamesFor(argument string) *entities.ArgumentNames {
 	for names := range marshalers {
 		if strings.Split(argument, "-")[1] == names.Name || a.isLongName(argument, names) {
 			return names
@@ -182,7 +175,7 @@ func (a *ArgumentParser) matchingNamesFor(argument string) *Names {
 	return nil
 }
 
-func (a *ArgumentParser) checkForExpected(argument string, matchingNames *Names) error {
+func (a *ArgumentParser) checkForExpected(argument string, matchingNames *entities.ArgumentNames) error {
 	if argument == "-h" || argument == "--help" {
 		return &PresentHelp{}
 	}
@@ -193,7 +186,7 @@ func (a *ArgumentParser) checkForExpected(argument string, matchingNames *Names)
 	return nil
 }
 
-func (a *ArgumentParser) isLongName(argument string, names *Names) bool {
+func (a *ArgumentParser) isLongName(argument string, names *entities.ArgumentNames) bool {
 	return strings.HasPrefix(argument, "--") && strings.Split(argument, "--")[1] == names.LongName
 }
 
@@ -228,18 +221,17 @@ func (a *ArgumentParser) checkForRequiredArguments() error {
 }
 
 func (a *ArgumentParser) Has(argument string) bool {
-	_, found := argumentsFound[argument]
-	return found
+	return argumentsFound.Has(argument)
 }
 
 func (a *ArgumentParser) NextArgument() int {
-	if len(argumentsFound) == 0 {
+	if argumentsFound.Length() == 0 {
 		return 0
 	}
-	return len(argumentsFound) - 1
+	return argumentsFound.Length() - 1
 }
 
-func (a *ArgumentParser) GetValueOf(names Names) any {
+func (a *ArgumentParser) GetValueOf(names entities.ArgumentNames) any {
 	for _names, marshaler := range marshalers {
 		if _names.Name == names.Name || _names.LongName == names.LongName {
 			return marshaler.GetValue()
