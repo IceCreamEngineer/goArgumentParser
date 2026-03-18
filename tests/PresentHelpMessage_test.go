@@ -2,6 +2,7 @@ package tests
 
 import (
 	"goArgumentParser/adapters"
+	"goArgumentParser/entities"
 	"goArgumentParser/ports"
 	"goArgumentParser/tests/testDoubles"
 	"goArgumentParser/useCases"
@@ -25,8 +26,7 @@ func TestPresentHelp(t *testing.T) {
 	helpSetup()
 	argumentParser := useCases.ArgumentParser{Arguments: []string{"-h"},
 		MarshalerFactory: simpleArgumentMarshalerFactory, HelpMessagePresenter: helpMessagePresenter}
-	parseError := argumentParser.Parse()
-	AssertThatThereWasNoError(t, parseError)
+	AssertThatThereWasNoError(t, argumentParser.Parse())
 	AssertPresented(t, ""+
 		"usage: client.go [-h]\n"+
 		"\n"+
@@ -34,6 +34,23 @@ func TestPresentHelp(t *testing.T) {
 		"\n"+
 		"optional arguments:\n"+
 		"  -h, --help            show this help message and exit\n")
+}
+
+func TestPresentHelpWithSchema(t *testing.T) {
+	helpSetup()
+	required := false
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "a", Description: "My arg",
+		Required: &required}}, Arguments: []string{"-h"}, MarshalerFactory: simpleArgumentMarshalerFactory,
+		HelpMessagePresenter: helpMessagePresenter}
+	AssertThatThereWasNoError(t, argumentParser.Parse())
+	AssertPresented(t, ""+
+		"usage: client.go [-h] [-a]\n"+
+		"\n"+
+		"My client\n"+
+		"\n"+
+		"optional arguments:\n"+
+		"  -h, --help            show this help message and exit\n"+
+		"  -a                    My arg\n")
 }
 
 func AssertPresented(t *testing.T, presentedMessage string) {
