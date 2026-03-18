@@ -14,33 +14,35 @@ type HelpMessagePresenter struct {
 var helpMessage string
 
 func (h HelpMessagePresenter) PresentHelpMessage(schema []entities.ArgumentSchemaElement) {
+	programTitle, argumentSpecifications := h.buildSchemaDependentMessages(schema)
 	helpMessage = "" +
-		h.buildProgramTitleFrom(schema) +
+		programTitle +
 		"\n" +
 		h.Description + "\n" +
 		"\n" +
 		"optional arguments:\n" +
 		"  -h, --help            show this help message and exit\n" +
-		h.buildArgumentSpecificationsFrom(schema)
+		argumentSpecifications
 	h.Presenter.Present(helpMessage)
 }
 
-func (h HelpMessagePresenter) buildProgramTitleFrom(schema []entities.ArgumentSchemaElement) string {
+func (h HelpMessagePresenter) buildSchemaDependentMessages(schema []entities.ArgumentSchemaElement) (string, string) {
 	programTitle := "usage: " + h.ProgramFileName + " [-h]"
-	for _, schemaElement := range schema {
-		if schemaElement.IsRequired() {
-			programTitle += " -" + schemaElement.Name
-		} else {
-			programTitle += " [-" + schemaElement.Name + "]"
-		}
-	}
-	return programTitle + "\n"
-}
-
-func (h HelpMessagePresenter) buildArgumentSpecificationsFrom(schema []entities.ArgumentSchemaElement) string {
 	argumentSpecifications := ""
 	for _, schemaElement := range schema {
-		argumentSpecifications += "  -" + schemaElement.Name + "                    " + schemaElement.Description + "\n"
+		programTitle += h.buildProgramTitleFrom(schemaElement)
+		argumentSpecifications += h.buildArgumentSpecificationFrom(schemaElement)
 	}
-	return argumentSpecifications
+	return programTitle + "\n", argumentSpecifications
+}
+
+func (h HelpMessagePresenter) buildProgramTitleFrom(schemaElement entities.ArgumentSchemaElement) string {
+	if schemaElement.IsRequired() {
+		return " -" + schemaElement.Name
+	}
+	return " [-" + schemaElement.Name + "]"
+}
+
+func (h HelpMessagePresenter) buildArgumentSpecificationFrom(schemaElement entities.ArgumentSchemaElement) string {
+	return "  -" + schemaElement.Name + "                    " + schemaElement.Description + "\n"
 }
