@@ -3,6 +3,8 @@ package useCases
 import (
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
+	"strings"
+	"unicode/utf8"
 )
 
 type HelpMessagePresenter struct {
@@ -12,6 +14,8 @@ type HelpMessagePresenter struct {
 }
 
 var helpMessage string
+
+const MessageCharacterWidth = 30
 
 func (h HelpMessagePresenter) PresentHelpMessage(schema []entities.ArgumentSchemaElement) {
 	programTitle, argumentSpecifications := h.buildSchemaDependentMessages(schema)
@@ -44,5 +48,21 @@ func (h HelpMessagePresenter) buildProgramTitleFrom(schemaElement entities.Argum
 }
 
 func (h HelpMessagePresenter) buildArgumentSpecificationFrom(schemaElement entities.ArgumentSchemaElement) string {
-	return "  -" + schemaElement.Name + "                    " + schemaElement.Description + "\n"
+	longNameAddition := h.checkToAddLongName(schemaElement)
+	spacer := h.calculateSpacerFrom(schemaElement, longNameAddition)
+	return "  -" + schemaElement.Name + longNameAddition + spacer + schemaElement.Description + "\n"
+}
+
+func (h HelpMessagePresenter) checkToAddLongName(schemaElement entities.ArgumentSchemaElement) string {
+	if schemaElement.LongName != "" {
+		return ", --" + schemaElement.LongName
+	}
+	return ""
+}
+
+func (h HelpMessagePresenter) calculateSpacerFrom(schemaElement entities.ArgumentSchemaElement,
+	longNameAddition string) string {
+	argumentSpecificationWithoutSpacer := "  -" + schemaElement.Name + longNameAddition + schemaElement.Description
+	withoutSpacerWidth := utf8.RuneCountInString(argumentSpecificationWithoutSpacer)
+	return strings.Repeat(" ", MessageCharacterWidth-withoutSpacerWidth)
 }

@@ -53,6 +53,23 @@ func TestPresentHelpWithSchema(t *testing.T) {
 		"  -a                    My arg\n")
 }
 
+func TestPresentHelpWithSchemaAndLongName(t *testing.T) {
+	helpSetup()
+	required := false
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "a", LongName: "arg",
+		Description: "My arg", Required: &required}}, Arguments: []string{"-h"},
+		MarshalerFactory: simpleArgumentMarshalerFactory, HelpMessagePresenter: helpMessagePresenter}
+	AssertThatThereWasNoError(t, argumentParser.Parse())
+	AssertPresented(t, ""+
+		"usage: client.go [-h] [-a]\n"+
+		"\n"+
+		"My client\n"+
+		"\n"+
+		"optional arguments:\n"+
+		"  -h, --help            show this help message and exit\n"+
+		"  -a, --arg             My arg\n")
+}
+
 func AssertPresented(t *testing.T, presentedMessage string) {
 	if presenter.GetPresented() != presentedMessage {
 		t.Errorf("Expected presented message '%s' but got '%s'", presentedMessage, presenter.GetPresented())
