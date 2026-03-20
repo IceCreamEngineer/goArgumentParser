@@ -29,7 +29,7 @@ func assertExpectedErrorField(t *testing.T, actualErrorField any, expectedErrorF
 
 func AssertThatThereWasNoError(t *testing.T, err error) {
 	if err != nil {
-		t.Error("Should not return an error")
+		t.Error("Should not return an error but got " + err.Error())
 	}
 }
 

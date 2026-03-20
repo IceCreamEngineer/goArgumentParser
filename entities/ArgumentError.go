@@ -1,5 +1,7 @@
 package entities
 
+import "strconv"
+
 const UnexpectedArgument = 1
 const InvalidArgumentName = 2
 const InvalidArgumentFormat = 3
@@ -13,5 +15,5 @@ type ArgumentError struct {
 }
 
 func (err ArgumentError) Error() string {
-	return err.ErrorMessage
+	return strconv.Itoa(err.ErrorCode)
 }

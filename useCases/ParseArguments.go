@@ -25,9 +25,12 @@ type ArgumentParser struct {
 
 func (a *ArgumentParser) Parse() error {
 	parseError := a.tryToParse()
-	handledError := a.handleParseError(parseError)
-	if handledError != nil {
-		return handledError
+	if parseError != nil {
+		if errors.Is(parseError, &PresentHelp{}) {
+			a.HelpMessagePresenter.PresentHelpMessage(a.Schema)
+			return nil
+		}
+		return parseError
 	}
 	missingRequiredArgumentError := a.checkForRequiredArguments()
 	if missingRequiredArgumentError != nil {
@@ -200,17 +203,6 @@ func (a *ArgumentParser) parseArgumentNameFrom(argument string) string {
 	return argumentName
 }
 
-func (a *ArgumentParser) handleParseError(parseError error) error {
-	if parseError != nil {
-		if errors.Is(parseError, &PresentHelp{}) {
-			a.HelpMessagePresenter.PresentHelpMessage(a.Schema)
-			return nil
-		}
-		return parseError
-	}
-	return nil
-}
-
 func (a *ArgumentParser) checkForRequiredArguments() error {
 	for _, element := range a.Schema {
 		if !a.Has(element.Name) && !a.Has(element.LongName) && element.IsRequired() {
@@ -243,5 +235,5 @@ func (a *ArgumentParser) GetValueOf(names entities.ArgumentNames) any {
 type PresentHelp struct{}
 
 func (p PresentHelp) Error() string {
-	return ""
+	return "help"
 }
