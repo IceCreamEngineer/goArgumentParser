@@ -32,10 +32,6 @@ func (a *ArgumentParser) Parse() error {
 		}
 		return parseError
 	}
-	missingRequiredArgumentError := a.checkForRequiredArguments()
-	if missingRequiredArgumentError != nil {
-		return missingRequiredArgumentError
-	}
 	return nil
 }
 
@@ -47,6 +43,10 @@ func (a *ArgumentParser) tryToParse() error {
 	argumentParsingError := a.parseArguments()
 	if argumentParsingError != nil {
 		return argumentParsingError
+	}
+	missingRequiredArgumentError := a.checkForRequiredArguments()
+	if missingRequiredArgumentError != nil {
+		return missingRequiredArgumentError
 	}
 	return nil
 }
