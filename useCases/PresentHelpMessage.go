@@ -3,9 +3,14 @@ package useCases
 import (
 	"goArgumentParser/entities"
 	"goArgumentParser/ports"
+	"slices"
 	"strings"
-	"unicode/utf8"
 )
+
+const IndentLength = 2
+const PaddingPlaceholder = "|"
+
+var indent = strings.Repeat(" ", IndentLength)
 
 type HelpMessagePresenter struct {
 	ProgramFileName string
@@ -13,31 +18,29 @@ type HelpMessagePresenter struct {
 	Presenter       ports.Presenter
 }
 
-var helpMessage string
-
-const MessageCharacterWidth = 30
-
 func (h HelpMessagePresenter) PresentHelpMessage(schema []entities.ArgumentSchemaElement) {
-	programTitle, argumentSpecifications := h.buildSchemaDependentMessages(schema)
-	helpMessage = "" +
+	programTitle, argumentSpecificationMessages := h.buildSchemaDependentMessages(schema)
+	h.Presenter.Present("" +
 		programTitle +
 		"\n" +
 		h.Description + "\n" +
 		"\n" +
 		"optional arguments:\n" +
-		"  -h, --help            show this help message and exit\n" +
-		argumentSpecifications
-	h.Presenter.Present(helpMessage)
+		argumentSpecificationMessages)
 }
 
 func (h HelpMessagePresenter) buildSchemaDependentMessages(schema []entities.ArgumentSchemaElement) (string, string) {
 	programTitle := "usage: " + h.ProgramFileName + " [-h]"
-	argumentSpecifications := ""
+	argumentSpecifications := []string{"-h, --help|show this help message and exit\n"}
+	argumentSpecificationLabelLengths := []int{len("-h, --help")}
 	for _, schemaElement := range schema {
 		programTitle += h.buildProgramTitleFrom(schemaElement)
-		argumentSpecifications += h.buildArgumentSpecificationFrom(schemaElement)
+		argumentSpecification := h.buildArgumentSpecificationFrom(schemaElement)
+		argumentSpecifications = append(argumentSpecifications, argumentSpecification)
+		argumentSpecificationLabelLengths = append(argumentSpecificationLabelLengths,
+			len(h.argumentSpecificationLabel(argumentSpecification)))
 	}
-	return programTitle + "\n", argumentSpecifications
+	return programTitle + "\n", h.buildArgumentSpecificationMessages(argumentSpecificationLabelLengths, argumentSpecifications)
 }
 
 func (h HelpMessagePresenter) buildProgramTitleFrom(schemaElement entities.ArgumentSchemaElement) string {
@@ -49,8 +52,7 @@ func (h HelpMessagePresenter) buildProgramTitleFrom(schemaElement entities.Argum
 
 func (h HelpMessagePresenter) buildArgumentSpecificationFrom(schemaElement entities.ArgumentSchemaElement) string {
 	longNameAddition := h.checkToAddLongName(schemaElement)
-	spacer := h.calculateSpacerFrom(schemaElement, longNameAddition)
-	return "  -" + schemaElement.Name + longNameAddition + spacer + schemaElement.Description + "\n"
+	return "-" + schemaElement.Name + longNameAddition + PaddingPlaceholder + schemaElement.Description + "\n"
 }
 
 func (h HelpMessagePresenter) checkToAddLongName(schemaElement entities.ArgumentSchemaElement) string {
@@ -60,9 +62,27 @@ func (h HelpMessagePresenter) checkToAddLongName(schemaElement entities.Argument
 	return ""
 }
 
-func (h HelpMessagePresenter) calculateSpacerFrom(schemaElement entities.ArgumentSchemaElement,
-	longNameAddition string) string {
-	argumentSpecificationWithoutSpacer := "  -" + schemaElement.Name + longNameAddition + schemaElement.Description
-	withoutSpacerWidth := utf8.RuneCountInString(argumentSpecificationWithoutSpacer)
-	return strings.Repeat(" ", MessageCharacterWidth-withoutSpacerWidth)
+func (h HelpMessagePresenter) argumentSpecificationLabel(argumentSpecification string) string {
+	return strings.Split(argumentSpecification, PaddingPlaceholder)[0]
+}
+
+func (h HelpMessagePresenter) buildArgumentSpecificationMessages(argumentSpecificationLabelLengths []int,
+	argumentSpecifications []string) string {
+	maxArgumentSpecificationLabelLength := slices.Max(argumentSpecificationLabelLengths)
+	argumentSpecificationMessages := ""
+	for i, specification := range argumentSpecifications {
+		argumentSpecificationMessages += indent + strings.Replace(specification, PaddingPlaceholder,
+			h.calculatePaddingFrom(maxArgumentSpecificationLabelLength, argumentSpecificationLabelLengths[i]), 1)
+	}
+	return argumentSpecificationMessages
+}
+
+func (h HelpMessagePresenter) calculatePaddingFrom(maxArgumentSpecificationLabelLength int,
+	currentArgumentSpecificationLabelLength int) string {
+	return strings.Repeat(" ", h.absoluteValueOf(
+		(maxArgumentSpecificationLabelLength+IndentLength)-currentArgumentSpecificationLabelLength))
+}
+
+func (h HelpMessagePresenter) absoluteValueOf(value int) int {
+	return max(value, -value)
 }

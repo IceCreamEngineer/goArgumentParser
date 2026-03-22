@@ -33,7 +33,7 @@ func TestPresentHelp(t *testing.T) {
 		"My client\n"+
 		"\n"+
 		"optional arguments:\n"+
-		"  -h, --help            show this help message and exit\n")
+		"  -h, --help  show this help message and exit\n")
 }
 
 func TestPresentHelpWithSchema(t *testing.T) {
@@ -49,8 +49,8 @@ func TestPresentHelpWithSchema(t *testing.T) {
 		"My client\n"+
 		"\n"+
 		"optional arguments:\n"+
-		"  -h, --help            show this help message and exit\n"+
-		"  -a                    My arg\n")
+		"  -h, --help  show this help message and exit\n"+
+		"  -a          My arg\n")
 }
 
 func TestPresentHelpWithSchemaAndLongName(t *testing.T) {
@@ -66,8 +66,8 @@ func TestPresentHelpWithSchemaAndLongName(t *testing.T) {
 		"My client\n"+
 		"\n"+
 		"optional arguments:\n"+
-		"  -h, --help            show this help message and exit\n"+
-		"  -a, --arg             My arg\n")
+		"  -h, --help  show this help message and exit\n"+
+		"  -a, --arg   My arg\n")
 }
 
 func TestPresentHelpForRequiredArgs(t *testing.T) {
@@ -82,8 +82,8 @@ func TestPresentHelpForRequiredArgs(t *testing.T) {
 		"My client\n"+
 		"\n"+
 		"optional arguments:\n"+
-		"  -h, --help            show this help message and exit\n"+
-		"  -a, --arg             My arg\n"+
+		"  -h, --help      show this help message and exit\n"+
+		"  -a, --arg       My arg\n"+
 		"  -b, --otherarg  My other arg\n")
 }
 
