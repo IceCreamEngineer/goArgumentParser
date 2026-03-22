@@ -8,6 +8,7 @@ import (
 )
 
 const IndentLength = 2
+const LineLength = 72
 const PaddingPlaceholder = "|"
 
 var indent = strings.Repeat(" ", IndentLength)
@@ -23,7 +24,7 @@ func (h HelpMessagePresenter) PresentHelpMessage(schema []entities.ArgumentSchem
 	h.Presenter.Present("" +
 		programTitle +
 		"\n" +
-		h.Description + "\n" +
+		h.textWrap(h.Description) + "\n" +
 		"\n" +
 		"optional arguments:\n" +
 		argumentSpecificationMessages)
@@ -85,4 +86,27 @@ func (h HelpMessagePresenter) calculatePaddingFrom(maxArgumentSpecificationLabel
 
 func (h HelpMessagePresenter) absoluteValueOf(value int) int {
 	return max(value, -value)
+}
+
+func (h HelpMessagePresenter) textWrap(text string) string {
+	words := strings.Fields(strings.TrimSpace(text))
+	if len(words) == 0 {
+		return text
+	}
+	return h.wrap(words)
+}
+
+func (h HelpMessagePresenter) wrap(words []string) string {
+	wrapped := words[0]
+	spaceLeft := LineLength - len(wrapped)
+	for _, word := range words[1:] {
+		if len(word)+1 > spaceLeft {
+			wrapped += "\n" + word
+			spaceLeft = LineLength - len(word)
+		} else {
+			wrapped += " " + word
+			spaceLeft -= 1 + len(word)
+		}
+	}
+	return wrapped
 }
