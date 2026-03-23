@@ -116,6 +116,30 @@ func TestWrappedLongDescription(t *testing.T) {
 		"  -h, --help  show this help message and exit\n")
 }
 
+func TestWrappedLongArgumentDescription(t *testing.T) {
+	helpSetup()
+	argumentParser := useCases.ArgumentParser{Schema: []entities.ArgumentSchemaElement{{Name: "f", LongName: "frankenstein",
+		Description: "The event on which this fiction is founded has been supposed, by Dr. Darwin, and some of the physiological writers of Germany, as not of impossible occurrence. I shall not be supposed as according the remotest degree of serious faith to such an imagination; yet, in assuming it as the basis of a work of fancy, I have not considered myself as merely weaving a series of supernatural terrors.",
+	}}, Arguments: []string{"-h"}, MarshalerFactory: simpleArgumentMarshalerFactory, HelpMessagePresenter: helpMessagePresenter}
+	AssertThatThereWasNoError(t, argumentParser.Parse())
+	AssertPresented(t, ""+
+		"usage: client.go [-h] -f\n"+
+		"\n"+
+		"My client\n"+
+		"\n"+
+		"optional arguments:\n"+
+		"  -h, --help          show this help message and exit\n"+
+		"  -f, --frankenstein  The event on which this fiction is founded has\n"+
+		"                      been supposed, by Dr. Darwin, and some of the\n"+
+		"                      physiological writers of Germany, as not of\n"+
+		"                      impossible occurrence. I shall not be supposed as\n"+
+		"                      according the remotest degree of serious faith to\n"+
+		"                      such an imagination; yet, in assuming it as the\n"+
+		"                      basis of a work of fancy, I have not considered\n"+
+		"                      myself as merely weaving a series of supernatural\n"+
+		"                      terrors.\n")
+}
+
 func AssertPresented(t *testing.T, presentedMessage string) {
 	if presenter.GetPresented() != presentedMessage {
 		t.Errorf("Expected presented message '%s' but got '%s'", presentedMessage, presenter.GetPresented())

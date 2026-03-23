@@ -70,10 +70,12 @@ func (h HelpMessagePresenter) argumentSpecificationLabel(argumentSpecification s
 func (h HelpMessagePresenter) buildArgumentSpecificationMessages(argumentSpecificationLabelLengths []int,
 	argumentSpecifications []string) string {
 	maxArgumentSpecificationLabelLength := slices.Max(argumentSpecificationLabelLengths)
+	nextWrappedLinePadding := strings.Repeat(" ", IndentLength+maxArgumentSpecificationLabelLength+IndentLength)
 	argumentSpecificationMessages := ""
 	for i, specification := range argumentSpecifications {
-		argumentSpecificationMessages += indent + strings.Replace(specification, PaddingPlaceholder,
+		unwrappedMessage := indent + strings.Replace(specification, PaddingPlaceholder,
 			h.calculatePaddingFrom(maxArgumentSpecificationLabelLength, argumentSpecificationLabelLengths[i]), 1)
+		argumentSpecificationMessages += h.textWrapWithWrappedLinePadding(unwrappedMessage, nextWrappedLinePadding)
 	}
 	return argumentSpecificationMessages
 }
@@ -88,21 +90,29 @@ func (h HelpMessagePresenter) absoluteValueOf(value int) int {
 	return max(value, -value)
 }
 
+func (h HelpMessagePresenter) textWrapWithWrappedLinePadding(text string, wrappedLinePadding string) string {
+	words := strings.Split(text, " ")
+	if len(words) == 0 {
+		return text
+	}
+	return h.wrap(words, wrappedLinePadding)
+}
+
 func (h HelpMessagePresenter) textWrap(text string) string {
 	words := strings.Fields(strings.TrimSpace(text))
 	if len(words) == 0 {
 		return text
 	}
-	return h.wrap(words)
+	return h.wrap(words, "")
 }
 
-func (h HelpMessagePresenter) wrap(words []string) string {
+func (h HelpMessagePresenter) wrap(words []string, wrappedLinePadding string) string {
 	wrapped := words[0]
 	spaceLeft := LineLength - len(wrapped)
 	for _, word := range words[1:] {
 		if len(word)+1 > spaceLeft {
-			wrapped += "\n" + word
-			spaceLeft = LineLength - len(word)
+			wrapped += "\n" + wrappedLinePadding + word
+			spaceLeft = LineLength - len(wrappedLinePadding+word)
 		} else {
 			wrapped += " " + word
 			spaceLeft -= 1 + len(word)
