@@ -111,12 +111,22 @@ func (h HelpMessagePresenter) wrap(words []string, wrappedLinePadding string) st
 	spaceLeft := LineLength - len(wrapped)
 	for _, word := range words[1:] {
 		if len(word)+1 > spaceLeft {
-			wrapped += "\n" + wrappedLinePadding + word
-			spaceLeft = LineLength - len(wrappedLinePadding+word)
+			wrapped, spaceLeft = h.indentWrappedWordOnNewLine(wrapped, wrappedLinePadding, word, spaceLeft)
 		} else {
-			wrapped += " " + word
-			spaceLeft -= 1 + len(word)
+			wrapped, spaceLeft = h.addWrappedWord(wrapped, word, spaceLeft)
 		}
 	}
 	return wrapped
+}
+
+func (h HelpMessagePresenter) indentWrappedWordOnNewLine(wrapped string, wrappedLinePadding string, word string, spaceLeft int) (string, int) {
+	wrapped += "\n" + wrappedLinePadding + word
+	spaceLeft = LineLength - len(wrappedLinePadding+word)
+	return wrapped, spaceLeft
+}
+
+func (h HelpMessagePresenter) addWrappedWord(wrapped string, word string, spaceLeft int) (string, int) {
+	wrapped += " " + word
+	spaceLeft -= 1 + len(word)
+	return wrapped, spaceLeft
 }
